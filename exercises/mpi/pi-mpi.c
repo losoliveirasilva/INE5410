@@ -25,9 +25,8 @@ int main(int argc, char **argv){
   int aux = 0;
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
   MPI_Comm_size(MPI_COMM_WORLD, &size);
-  if (rank != 0) {
-    compute_pi(rank, pontos);
-  } else {
+  compute_pi(rank, pontos);
+  if (rank == 0) {
   for (int i = 1; i < size; ++i) {
     MPI_Recv(&pontos_no_circulo, 1, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
     aux = aux + pontos_no_circulo;
