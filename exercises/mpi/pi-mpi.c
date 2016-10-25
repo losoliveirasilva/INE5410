@@ -3,10 +3,9 @@
 #include <mpi.h>
 
 void compute_pi(unsigned int, unsigned int);
-
+unsigned pontos_no_circulo = 0;
 int main(int argc, char **argv){
   unsigned int pontos;
-  unsigned int pontos_no_circulo;
   unsigned int i;
   
   if(argc != 2){
@@ -26,13 +25,15 @@ int main(int argc, char **argv){
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
   MPI_Comm_size(MPI_COMM_WORLD, &size);
   compute_pi(rank, pontos);
+  int aux1 = pontos_no_circulo;
   if (rank == 0) {
   for (int i = 1; i < size; ++i) {
     MPI_Recv(&pontos_no_circulo, 1, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-    aux = aux + pontos_no_circulo;
+    aux = aux + pontos_no_circulo + aux1;
+	aux1 = 0;
   }
   // calcula a aproximacao de Pi baseado nos pontos sorteados
-  printf("Pi = %.040f\n", ((double)aux*4/(double)(pontos*(size-1))));
+  printf("Pi = %.040f\n", ((double)aux*4/(double)(pontos*size)));
     }
   MPI_Finalize();
   return 0;
@@ -40,11 +41,10 @@ int main(int argc, char **argv){
 
 void compute_pi(unsigned int seed, unsigned int pontos){
   unsigned int i;
-  unsigned int pontos_no_circulo;
   double x, y;
-  pontos_no_circulo = 0;
   srand(seed);
-  
+  int rank;
+  MPI_Comm_rank(MPI_COMM_WORLD, &rank); 
   for(i=0; i<pontos; i++){
   	// sorteia um ponto: coordenadas x e y dentro do quadrado
   	// consideramos que R = 1, então x e y pertencem ao intervalo [0; 1]
@@ -58,5 +58,5 @@ void compute_pi(unsigned int seed, unsigned int pontos){
       pontos_no_circulo++;
     }      
   }
-    MPI_Send(&pontos_no_circulo, 1, MPI_INT, 0, 0, MPI_COMM_WORLD);  
+    if (rank != 0) {MPI_Send(&pontos_no_circulo, 1, MPI_INT, 0, 0, MPI_COMM_WORLD);}  
 }
